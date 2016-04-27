@@ -24,6 +24,8 @@ def fitting_process(wavelength, real_intensity, center_wavelength, center_intens
         
     r2_score = r_square_score(real_intensity, fitted)
     previous = 0.0
+    
+    # iteration until get same r2 score
     while r2_score != previous :
         previous = copy.deepcopy(r2_score)
         result = \
@@ -76,13 +78,13 @@ def universe_optimization(wavelength, real_intensity, center_wavelength, center_
             center_intensity = optimize_center_intensity
         
     for i in range(len(center_wavelength)):
-        if center_wavelength[i] != 14200 :
+        if i !=8 :
             initial_score = \
             r_square_score(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM))
             optimize_score = copy.deepcopy(initial_score)
             optimize_center_wavelength = copy.deepcopy(center_wavelength)
             step = 1
-            
+             
             plus_center_wavelength = copy.deepcopy(center_wavelength)
             plus_center_wavelength[i] = plus_center_wavelength[i] + step
             plus_score = \
@@ -91,7 +93,7 @@ def universe_optimization(wavelength, real_intensity, center_wavelength, center_
             minus_center_wavelength[i] = minus_center_wavelength[i] - step
             minus_score = \
             r_square_score(real_intensity, fitted_total_spectrum(wavelength, minus_center_wavelength, center_intensity, FWHM))
-            
+             
             if plus_score > minus_score :
                 optimize_score = plus_score
                 optimize_center_wavelength = plus_center_wavelength
@@ -132,21 +134,39 @@ def guassion_fun(xData, wavelength, intensity, FWHM):
     return intensity * np.exp((-1 * np.power((xData - wavelength),2) / np.power(FWHM, 2)))
 
 def r_square_score(target,fitted):    
-    target1 = target[0:370]
-    fitted1 = fitted[0:370]
-    target2 = target[415:450]
-    fitted2 = fitted[415:450]
-    target3 = target[450:520]
-    fitted3 = fitted[450:520]
-    target4 = target[520:550]
-    fitted4 = fitted[520:550]
-    target5 = target[550:650]
-    fitted5 = fitted[550:650]
-    score1 = r2_score(target1, fitted1) * 25 / 80
+    #===========================================================================
+    # for no loading, wavelength 1 nm interval 
+    # target1 = target[0:370]
+    # fitted1 = fitted[0:370]
+    # target2 = target[415:450]
+    # fitted2 = fitted[415:450]
+    # target3 = target[450:520]
+    # fitted3 = fitted[450:520]
+    # target4 = target[520:550]
+    # fitted4 = fitted[520:550]
+    # target5 = target[550:650]
+    # fitted5 = fitted[550:650]
+    #===========================================================================
+    
+    # for h2 loaded, wavelength 1.1 nm interval 
+    target1 = target[0:int(370/1.1)]
+    fitted1 = fitted[0:int(370/1.1)]
+    target2 = target[int(415/1.1):int(450/1.1)]
+    fitted2 = fitted[int(415/1.1):int(450/1.1)]
+    target3 = target[int(450/1.1):int(520/1.1)]
+    fitted3 = fitted[int(450/1.1):int(520/1.1)]
+    target4 = target[int(520/1.1):int(550/1.1)]
+    fitted4 = fitted[int(520/1.1):int(550/1.1)]
+    target5 = target[int(550/1.1):int(650/1.1)]
+    fitted5 = fitted[int(550/1.1):int(650/1.1)]
+    
+    
+    score1 = r2_score(target1, fitted1) * 35 / 80
     score2 = r2_score(target2, fitted2) * 25 / 80
-    score3 = r2_score(target3, fitted3) * 12 / 80
+    score3 = r2_score(target3, fitted3) * 14 / 80
     score4 = r2_score(target4, fitted4) * 10 / 80
     score5 = r2_score(target5, fitted5) * 6 / 80
+    return r2_score(target, fitted)
     return score1 + score2 + score3 + score4 + score5
 
 
@@ -168,11 +188,12 @@ def fit_one_spectrum(xData, yData):
     #===========================================================================
     
     FWHM = [113,100,86,20]
-    center_wavelength = [1150,1310,1420,1545]
+    center_wavelength = [1091,1250,1426,1535]
     
     intensity = []    
     for i in range(len(center_wavelength)) :
-        intensity.append(yData[xData.tolist().index(center_wavelength[i])])
+        index = ( center_wavelength[i] - 1000 ) / 1.1
+        intensity.append(yData[index])
         
     # 3. fitting
     
@@ -183,16 +204,24 @@ def fit_one_spectrum(xData, yData):
     
 if __name__ == '__main__':
     # 1. import data
-    rawData = pd.read_csv("./Data/input_time.csv")
+    #rawData = pd.read_csv("./Data/input_time.csv")
     
-    time = range(1, 20)
-    time.extend(range(20,65,5))
+    rawData = pd.read_csv("./Data/input_time_h2loaded.csv")
     
-    xData = np.float64(rawData["Wavelength"][:650].values)
+    #time = range(1, 20)
+    #time.extend(range(20,65,5))
+    
+    time = range(31)
+    
+    xData = np.float64(rawData["Wavelength"][:593].values)
     result = []
+    
+    maxIntensity = max(rawData["0"])
+    
     for t in range(len(time)):
         print "time : " + str(time[t])
-        yData = np.float64(rawData[str(time[t])][:650].values)
+        #yData = np.float64(rawData[str(time[t])][:650].values)
+        yData = np.float64(rawData[str(time[t])][:593].values / maxIntensity)
         result.append(fit_one_spectrum(xData, yData))
     
     maxium_intensity_Si = []
@@ -215,13 +244,9 @@ if __name__ == '__main__':
     fig1.plot(time, normalized_maxium_intensity_P,'o', label = "P")
     fig1.plot(time, normalized_maxium_intensity_Si,'o', label = "Si")
     fig1.plot(time, normalized_maxium_intensity_Er,'o', label = "Er")
+    fig1.ylim(0.3,1.1)
+    fig1.xlim(-1,35)
     fig1.legend()
     fig1.show()
-    
-    subtracted = rawData.copy()
-    finalResult = rawData.copy()
-    
-    currentTime = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    outputFileName = ("./Result/Gaussian-Fitting-%s.csv" % currentTime)
     
     

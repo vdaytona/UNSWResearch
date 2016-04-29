@@ -2,6 +2,7 @@
 Created on 26 Apr 2016
 
 Fitting multiple gaussian
+with bias for background fitting
 
 @author: Daytona
 '''
@@ -15,37 +16,35 @@ import copy
 from __builtin__ import str
 
 
-def fitting_process(wavelength, real_intensity, center_wavelength, center_intensity, FWHM):
+def fitting_process(wavelength, real_intensity, center_wavelength, center_intensity, FWHM,bias):
     
-    fitted = fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM)
+    fitted = fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM, bias)
     
     coeff_score = coeff_cal(real_intensity, fitted)
     previous = 0.0
     while coeff_score != previous :
         previous = copy.deepcopy(coeff_score)
         result = \
-        universe_optimization_coeff(wavelength, real_intensity, center_wavelength, center_intensity, FWHM)
-        center_wavelength, center_intensity, FWHM = result[0],result[1], result[2]
-        fitted = fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM)
+        universe_optimization_coeff(wavelength, real_intensity, center_wavelength, center_intensity, FWHM, bias)
+        center_wavelength, center_intensity, FWHM,bias = result[0],result[1], result[2], result[3]
+        fitted = fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM, bias)
         coeff_score = coeff_cal(real_intensity, fitted)
     print "coeff : " + str(coeff_score)
       
     ######
     #plot#
     ######
-    #===========================================================================
-    # plt.figure(figsize=(12,10))
-    # plt.plot(wavelength, real_intensity, label = "real")
-    # plt.plot(wavelength, fitted, label = "fitted")
-    # for i in range(len(center_intensity)) :
-    #     y = guassion_fun(xData, center_wavelength[i], center_intensity[i], FWHM[i])
-    #     plt.plot(xData,y,label = str(i))
-    # plt.legend()
-    # plt.xlabel("Wavelength (nm)")
-    # plt.ylabel("Intensity (a. u.)")
-    # print sm.r2_score(real_intensity,fitted)
-    # plt.show()
-    #===========================================================================
+    plt.figure(figsize=(12,10))
+    plt.plot(wavelength, real_intensity, label = "real")
+    plt.plot(wavelength, fitted, label = "fitted")
+    for i in range(len(center_intensity)) :
+        y = guassion_fun(xData, center_wavelength[i], center_intensity[i], FWHM[i])
+        plt.plot(xData,y,label = str(i))
+    plt.legend()
+    plt.xlabel("Wavelength (nm)")
+    plt.ylabel("Intensity (a. u.)")
+    print sm.r2_score(real_intensity,fitted)
+    plt.show()
     
     # 1. calculate the initial r2_score
     
@@ -57,9 +56,9 @@ def fitting_process(wavelength, real_intensity, center_wavelength, center_intens
     while r2_score != previous :
         previous = copy.deepcopy(r2_score)
         result = \
-        universe_optimization(wavelength, real_intensity, center_wavelength, center_intensity, FWHM)
-        center_wavelength, center_intensity, FWHM = result[0],result[1], result[2]
-        fitted = fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM)
+        universe_optimization(wavelength, real_intensity, center_wavelength, center_intensity, FWHM, bias)
+        center_wavelength, center_intensity, FWHM,bias = result[0],result[1], result[2], result[3]
+        fitted = fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM, bias)
         r2_score = r_square_score(real_intensity, fitted)
     print "r2_score : " + str(r2_score)
     
@@ -67,36 +66,34 @@ def fitting_process(wavelength, real_intensity, center_wavelength, center_intens
     ######
     #plot#
     ######
-    #===========================================================================
-    # plt.figure(figsize=(12,10))
-    # plt.plot(wavelength, real_intensity, label = "real")
-    # plt.plot(wavelength, fitted, label = "fitted")
-    # for i in range(len(center_intensity)) :
-    #     y = guassion_fun(xData, center_wavelength[i], center_intensity[i], FWHM[i])
-    #     plt.plot(xData,y,label = str(i))
-    # plt.legend()
-    # plt.xlabel("Wavelength (nm)")
-    # plt.ylabel("Intensity (a. u.)")
-    # print sm.r2_score(real_intensity,fitted)
-    # plt.show()
-    #===========================================================================
+    plt.figure(figsize=(12,10))
+    plt.plot(wavelength, real_intensity, label = "real")
+    plt.plot(wavelength, fitted, label = "fitted")
+    for i in range(len(center_intensity)) :
+        y = guassion_fun(xData, center_wavelength[i], center_intensity[i], FWHM[i])
+        plt.plot(xData,y,label = str(i))
+    plt.legend()
+    plt.xlabel("Wavelength (nm)")
+    plt.ylabel("Intensity (a. u.)")
+    print sm.r2_score(real_intensity,fitted)
+    plt.show()
     
     print center_wavelength
     print center_intensity
     print FWHM
+    print [bias]
     
     
     
-    for i in range(20) :
-        print i
+    for i in range(2) :
         coeff_score = coeff_cal(real_intensity, fitted)
         previous = 0.0
         while coeff_score != previous :
             previous = copy.deepcopy(coeff_score)
             result = \
-            universe_optimization_coeff(wavelength, real_intensity, center_wavelength, center_intensity, FWHM)
+            universe_optimization_coeff(wavelength, real_intensity, center_wavelength, center_intensity, FWHM, bias)
             center_wavelength, center_intensity, FWHM = result[0],result[1], result[2]
-            fitted = fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM)
+            fitted = fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM, bias)
             coeff_score = coeff_cal(real_intensity, fitted)
         print "coeff : " + str(coeff_score)
         
@@ -104,15 +101,13 @@ def fitting_process(wavelength, real_intensity, center_wavelength, center_intens
         #plot#
         ######
         
-        #=======================================================================
-        # plt.plot(wavelength, real_intensity, label = "real")
-        # plt.plot(wavelength, fitted, label = "fitted")
-        # for i in range(len(center_intensity)) :
-        #     y = guassion_fun(xData, center_wavelength[i], center_intensity[i], FWHM[i])
-        #     plt.plot(xData,y,label = str(i))
-        # plt.legend()
-        # plt.show()
-        #=======================================================================
+        plt.plot(wavelength, real_intensity, label = "real")
+        plt.plot(wavelength, fitted, label = "fitted")
+        for i in range(len(center_intensity)) :
+            y = guassion_fun(xData, center_wavelength[i], center_intensity[i], FWHM[i])
+            plt.plot(xData,y,label = str(i))
+        plt.legend()
+        plt.show()
         
         # 1. calculate the initial r2_score
         
@@ -124,109 +119,33 @@ def fitting_process(wavelength, real_intensity, center_wavelength, center_intens
         while r2_score != previous :
             previous = copy.deepcopy(r2_score)
             result = \
-            universe_optimization(wavelength, real_intensity, center_wavelength, center_intensity, FWHM)
+            universe_optimization(wavelength, real_intensity, center_wavelength, center_intensity, FWHM, bias)
             center_wavelength, center_intensity, FWHM = result[0],result[1], result[2]
-            fitted = fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM)
+            fitted = fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM, bias)
             r2_score = r_square_score(real_intensity, fitted)
         print "r2_score : " + str(r2_score)
         
         
-    ######
-    #plot#
-    ######
-    
-    plt.plot(wavelength, real_intensity, label = "real")
-    plt.plot(wavelength, fitted, label = "fitted")
-    for i in range(len(center_intensity)) :
-        y = guassion_fun(xData, center_wavelength[i], center_intensity[i], FWHM[i])
-        plt.plot(xData,y,label = str(i))
-    plt.legend()
-    plt.show()
+        ######
+        #plot#
+        ######
+        
+        plt.plot(wavelength, real_intensity, label = "real")
+        plt.plot(wavelength, fitted, label = "fitted")
+        for i in range(len(center_intensity)) :
+            y = guassion_fun(xData, center_wavelength[i], center_intensity[i], FWHM[i])
+            plt.plot(xData,y,label = str(i))
+        plt.legend()
+        plt.show()
     
     
     
     return center_intensity
 
-def universe_optimization(wavelength, real_intensity, center_wavelength, center_intensity, FWHM):
+def universe_optimization(wavelength, real_intensity, center_wavelength, center_intensity, FWHM,bias):
     for i in range(len(center_intensity)):
         initial_score = \
-        r_square_score(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM))
-        optimize_score = copy.deepcopy(initial_score)
-        optimize_center_intensity = copy.deepcopy(center_intensity)
-        step = 0.05
-        
-        plus_center_intensity = copy.deepcopy(center_intensity)
-        plus_center_intensity[i] = plus_center_intensity[i] * (1 + step)
-        plus_score = \
-        r_square_score(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, plus_center_intensity, FWHM))
-        minus_center_intensity = copy.deepcopy(center_intensity)
-        minus_center_intensity[i] = minus_center_intensity[i] * (1 - step)
-        minus_score = \
-        r_square_score(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, minus_center_intensity, FWHM))
-        if plus_score > minus_score :
-            optimize_score = plus_score
-            optimize_center_intensity = plus_center_intensity
-        else :
-            optimize_center_intensity = minus_center_intensity
-            optimize_score = minus_score
-        if optimize_score > initial_score :
-            center_intensity = optimize_center_intensity
-        
-    for i in range(len(center_wavelength)):
-        if i != 8 :
-            initial_score = \
-            r_square_score(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM))
-            optimize_score = copy.deepcopy(initial_score)
-            optimize_center_wavelength = copy.deepcopy(center_wavelength)
-            step = 0.01
-             
-            plus_center_wavelength = copy.deepcopy(center_wavelength)
-            plus_center_wavelength[i] = plus_center_wavelength[i] * (1 + step)
-            plus_score = \
-            r_square_score(real_intensity, fitted_total_spectrum(wavelength, plus_center_wavelength, center_intensity, FWHM))
-            minus_center_wavelength = copy.deepcopy(center_wavelength)
-            minus_center_wavelength[i] = minus_center_wavelength[i]* (1 - step)
-            minus_score = \
-            r_square_score(real_intensity, fitted_total_spectrum(wavelength, minus_center_wavelength, center_intensity, FWHM))
-             
-            if plus_score > minus_score :
-                optimize_score = plus_score
-                optimize_center_wavelength = plus_center_wavelength
-            else :
-                optimize_center_wavelength = minus_center_wavelength
-                optimize_score = minus_score
-            if optimize_score > initial_score :
-                center_wavelength = optimize_center_wavelength
-            
-    for i in range(len(FWHM)) :
-            initial_score = \
-            r_square_score(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM))
-            optimize_score = copy.deepcopy(initial_score)
-            optimize_FWHM = copy.deepcopy(FWHM)
-            step = 0.01
-            
-            plus_FWHM = copy.deepcopy(FWHM)
-            plus_FWHM[i] = plus_FWHM[i] *  (1 + step)
-            plus_score = \
-            r_square_score(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, plus_FWHM))
-            minus_FWHM = copy.deepcopy(FWHM)
-            minus_FWHM[i] = minus_FWHM[i] * (1 - step)
-            minus_score = \
-            r_square_score(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, minus_FWHM))
-            if plus_score > minus_score :
-                optimize_score = plus_score
-                optimize_FWHM = plus_FWHM
-            else :
-                optimize_FWHM = minus_FWHM
-                optimize_score = minus_score
-            if optimize_score > initial_score :
-                FWHM = optimize_FWHM
-    return [center_wavelength, center_intensity, FWHM]
-
-def universe_optimization_coeff(wavelength, real_intensity, center_wavelength, center_intensity, FWHM):
-    for i in range(len(center_intensity)):
-        initial_score = \
-        coeff_cal(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM))
+        r_square_score(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM, bias))
         optimize_score = copy.deepcopy(initial_score)
         optimize_center_intensity = copy.deepcopy(center_intensity)
         step = 0.01
@@ -234,11 +153,110 @@ def universe_optimization_coeff(wavelength, real_intensity, center_wavelength, c
         plus_center_intensity = copy.deepcopy(center_intensity)
         plus_center_intensity[i] = plus_center_intensity[i] * (1 + step)
         plus_score = \
-        coeff_cal(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, plus_center_intensity, FWHM))
+        r_square_score(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, plus_center_intensity, FWHM, bias))
         minus_center_intensity = copy.deepcopy(center_intensity)
         minus_center_intensity[i] = minus_center_intensity[i] * (1 - step)
         minus_score = \
-        coeff_cal(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, minus_center_intensity, FWHM))
+        r_square_score(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, minus_center_intensity, FWHM, bias))
+        if plus_score > minus_score :
+            optimize_score = plus_score
+            optimize_center_intensity = plus_center_intensity
+        else :
+            optimize_center_intensity = minus_center_intensity
+            optimize_score = minus_score
+        if optimize_score > initial_score :
+            center_intensity = optimize_center_intensity
+        
+    for i in range(len(center_wavelength)):
+        if i != 8 :
+            initial_score = \
+            r_square_score(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM, bias))
+            optimize_score = copy.deepcopy(initial_score)
+            optimize_center_wavelength = copy.deepcopy(center_wavelength)
+            step = 0.01
+             
+            plus_center_wavelength = copy.deepcopy(center_wavelength)
+            plus_center_wavelength[i] = plus_center_wavelength[i] * (1 + step)
+            plus_score = \
+            r_square_score(real_intensity, fitted_total_spectrum(wavelength, plus_center_wavelength, center_intensity, FWHM, bias))
+            minus_center_wavelength = copy.deepcopy(center_wavelength)
+            minus_center_wavelength[i] = minus_center_wavelength[i]* (1 - step)
+            minus_score = \
+            r_square_score(real_intensity, fitted_total_spectrum(wavelength, minus_center_wavelength, center_intensity, FWHM, bias))
+             
+            if plus_score > minus_score :
+                optimize_score = plus_score
+                optimize_center_wavelength = plus_center_wavelength
+            else :
+                optimize_center_wavelength = minus_center_wavelength
+                optimize_score = minus_score
+            if optimize_score > initial_score :
+                center_wavelength = optimize_center_wavelength
+            
+    for i in range(len(FWHM)) :
+            initial_score = \
+            r_square_score(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM, bias))
+            optimize_score = copy.deepcopy(initial_score)
+            optimize_FWHM = copy.deepcopy(FWHM)
+            step = 0.01
+            
+            plus_FWHM = copy.deepcopy(FWHM)
+            plus_FWHM[i] = plus_FWHM[i] *  (1 + step)
+            plus_score = \
+            r_square_score(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, plus_FWHM, bias))
+            minus_FWHM = copy.deepcopy(FWHM)
+            minus_FWHM[i] = minus_FWHM[i] * (1 - step)
+            minus_score = \
+            r_square_score(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, minus_FWHM, bias))
+            if plus_score > minus_score :
+                optimize_score = plus_score
+                optimize_FWHM = plus_FWHM
+            else :
+                optimize_FWHM = minus_FWHM
+                optimize_score = minus_score
+            if optimize_score > initial_score :
+                FWHM = optimize_FWHM
+    
+    # update bias
+    initial_score = \
+            r_square_score(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM, bias))
+    optimize_score = copy.deepcopy(initial_score)
+    optimize_bias = copy.deepcopy(bias)
+    step = 0.01
+    plus_bias = copy.deepcopy(bias)
+    plus_bias = bias * (1+step)
+    plus_score = \
+    r_square_score(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM,plus_bias))
+    minus_bias = copy.deepcopy(bias)
+    minus_bias = bias * (1-step)
+    minus_score = \
+    r_square_score(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM,minus_bias))
+    if plus_score > minus_score :
+        optimize_score = plus_score
+        optimize_bias = plus_bias
+    else :
+        optimize_bias = minus_bias
+        optimize_score = minus_score
+    if optimize_score > initial_score :
+        bias = optimize_bias
+    return [center_wavelength, center_intensity, FWHM, bias]
+
+def universe_optimization_coeff(wavelength, real_intensity, center_wavelength, center_intensity, FWHM, bias):
+    for i in range(len(center_intensity)):
+        initial_score = \
+        coeff_cal(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM, bias))
+        optimize_score = copy.deepcopy(initial_score)
+        optimize_center_intensity = copy.deepcopy(center_intensity)
+        step = 0.01
+        
+        plus_center_intensity = copy.deepcopy(center_intensity)
+        plus_center_intensity[i] = plus_center_intensity[i] * (1 + step)
+        plus_score = \
+        coeff_cal(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, plus_center_intensity, FWHM, bias))
+        minus_center_intensity = copy.deepcopy(center_intensity)
+        minus_center_intensity[i] = minus_center_intensity[i] * (1 - step)
+        minus_score = \
+        coeff_cal(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, minus_center_intensity, FWHM, bias))
         #=======================================================================
         # print plus_score, minus_score , initial_score
         # print center_intensity
@@ -260,18 +278,18 @@ def universe_optimization_coeff(wavelength, real_intensity, center_wavelength, c
     for i in range(len(center_wavelength)):
         if i != 8 :
             initial_score = \
-            coeff_cal(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM))
+            coeff_cal(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM, bias))
             optimize_score = copy.deepcopy(initial_score)
             optimize_center_wavelength = copy.deepcopy(center_wavelength)
-            step = 1
+            step = 0.01
             plus_center_wavelength = copy.deepcopy(center_wavelength)
-            plus_center_wavelength[i] = plus_center_wavelength[i] + step
+            plus_center_wavelength[i] = plus_center_wavelength[i]* (1 + step)
             plus_score = \
-            coeff_cal(real_intensity, fitted_total_spectrum(wavelength, plus_center_wavelength, center_intensity, FWHM))
+            coeff_cal(real_intensity, fitted_total_spectrum(wavelength, plus_center_wavelength, center_intensity, FWHM, bias))
             minus_center_wavelength = copy.deepcopy(center_wavelength)
-            minus_center_wavelength[i] = minus_center_wavelength[i] - step
+            minus_center_wavelength[i] = minus_center_wavelength[i]* (1 - step)
             minus_score = \
-            coeff_cal(real_intensity, fitted_total_spectrum(wavelength, minus_center_wavelength, center_intensity, FWHM))
+            coeff_cal(real_intensity, fitted_total_spectrum(wavelength, minus_center_wavelength, center_intensity, FWHM, bias))
             
             if plus_score > minus_score :
                 optimize_score = plus_score
@@ -284,19 +302,19 @@ def universe_optimization_coeff(wavelength, real_intensity, center_wavelength, c
             
     for i in range(len(FWHM)) :
             initial_score = \
-            coeff_cal(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM))
+            coeff_cal(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM, bias))
             optimize_score = copy.deepcopy(initial_score)
             optimize_FWHM = copy.deepcopy(FWHM)
-            step = 1
+            step = 0.01
             plus_FWHM = copy.deepcopy(FWHM)
-            plus_FWHM[i] = plus_FWHM[i] + step
+            plus_FWHM[i] = plus_FWHM[i] * (1 + step)
             plus_score = \
-            coeff_cal(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, plus_FWHM))
+            coeff_cal(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, plus_FWHM, bias))
             minus_FWHM = copy.deepcopy(FWHM)
-            minus_FWHM[i] = minus_FWHM[i] - step
+            minus_FWHM[i] = minus_FWHM[i] * (1 - step)
             #print minus_FWHM
             minus_score = \
-            coeff_cal(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, minus_FWHM))
+            coeff_cal(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, minus_FWHM, bias))
             if plus_score > minus_score :
                 optimize_score = plus_score
                 optimize_FWHM = plus_FWHM
@@ -305,7 +323,30 @@ def universe_optimization_coeff(wavelength, real_intensity, center_wavelength, c
                 optimize_score = minus_score
             if optimize_score > initial_score :
                 FWHM = optimize_FWHM
-    return [center_wavelength, center_intensity, FWHM]
+    
+    # update bias
+    initial_score = \
+            coeff_cal(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM,bias))
+    optimize_score = copy.deepcopy(initial_score)
+    optimize_bias = copy.deepcopy(bias)
+    step = 0.01
+    plus_bias = copy.deepcopy(bias)
+    plus_bias = bias * (1+step)
+    plus_score = \
+    coeff_cal(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM,plus_bias))
+    minus_bias = copy.deepcopy(bias)
+    minus_bias = bias * (1-step)
+    minus_score = \
+    coeff_cal(real_intensity, fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM,minus_bias))
+    if plus_score > minus_score :
+        optimize_score = plus_score
+        optimize_bias = plus_bias
+    else :
+        optimize_bias = minus_bias
+        optimize_score = minus_score
+    if optimize_score > initial_score :
+        bias = optimize_bias
+    return [center_wavelength, center_intensity, FWHM, bias]
 
 def guassion_fun(xData, wavelength, intensity, FWHM):
     return intensity * np.exp((-1 * np.power((xData - wavelength),2) / np.power(FWHM, 2)))
@@ -319,30 +360,22 @@ def r_square_score(target,fitted):
     
     target1 = target[350:450]
     fitted1 = fitted[350:450]
-    target2 = target[485:550]
-    fitted2 = fitted[485:550]
+    target2 = target[480:550]
+    fitted2 = fitted[480:550]
     target3 = target[550:620]
     fitted3 = fitted[550:620]
-    target4 = target[620:650]
-    fitted4 = fitted[620:650]
+    target4 = target[620:666]
+    fitted4 = fitted[620:666]
     target5 = target[650:700]
     fitted5 = fitted[650:700]
     target6 = target[0:350]
     fitted6 = fitted[0:350]
-    weight1 = 25
-    weight2 = 25
-    weight3 = 25
-    weight4 = 25
-    weight5 = 0
-    weight6 = 25
-    weight = weight1 + weight2 + weight3 + weight4 + weight5 + weight6
-    
-    score1 = r2_score(target1, fitted1) * weight1 / weight
-    score2 = r2_score(target2, fitted2) * weight2 / weight
-    score3 = r2_score(target3, fitted3) * weight3 / weight
-    score4 = r2_score(target4, fitted4) * weight4 / weight
-    score5 = r2_score(target5, fitted5) * weight5 / weight
-    score6 = r2_score(target6, fitted6) * weight6 / weight
+    score1 = r2_score(target1, fitted1) * 25 / 105
+    score2 = r2_score(target2, fitted2) * 25 / 105
+    score3 = r2_score(target3, fitted3) * 10 / 105
+    score4 = r2_score(target4, fitted4) * 15 / 105
+    score5 = r2_score(target5, fitted5) * 0 / 105
+    score6 = r2_score(target6, fitted6) * 15 / 105
     
     #===========================================================================
     # print target5
@@ -387,15 +420,17 @@ def r_square_score(target,fitted):
     return score1 + score2 + score3 + score4 + score5 + score6
 
 def coeff_cal(target,fitted):
-    #return np.corrcoef(target, fitted)[0,1]
-    target1 = target[0:440]
-    fitted1 = fitted[0:440]
-    target2 = target[485:750]
-    fitted2 = fitted[485:750]
-    score1 = np.corrcoef(target1, fitted1)[0,1]
-    score2 = np.corrcoef(target2, fitted2)[0,1]
-     
-    return (score1 + score2) / 2
+    return np.corrcoef(target, fitted)[0,1]
+    #===========================================================================
+    # target1 = target[0:470]
+    # fitted1 = fitted[0:470]
+    # target2 = target[515:]
+    # fitted2 = fitted[515:]
+    # score1 = np.corrcoef(target1, fitted1)[0,1]
+    # score2 = np.corrcoef(target2, fitted2)[0,1]
+    # 
+    # return score1 + score2
+    #===========================================================================
     
 
 def check_nan(inputArray):
@@ -408,14 +443,14 @@ def check_nan(inputArray):
     return inputArray
             
 
-def fitted_total_spectrum(xData, center_wavelength, center_intensity, FWHM):
+def fitted_total_spectrum(xData, center_wavelength, center_intensity, FWHM,bias):
     y = []
     for i in range(len(center_wavelength)) :
         y.append(guassion_fun(xData, center_wavelength[i], center_intensity[i], FWHM[i]))
     fitted = y[0]
     for i in range(1,len(y)) :
         fitted += y[i]
-    return fitted
+    return fitted + bias
 
 def fit_one_spectrum(xData, yData):
     # set initial parameter
@@ -443,8 +478,9 @@ def fit_one_spectrum(xData, yData):
         intensity.append(yData[xData.tolist().index(center_wavelength[i])])
         
     # 3. fitting
+    bias = 0.01
     
-    result = fitting_process(xData, yData, center_wavelength, intensity, FWHM)
+    result = fitting_process(xData, yData, center_wavelength, intensity, FWHM,bias)
     print result
     
     return result

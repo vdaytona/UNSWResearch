@@ -34,6 +34,16 @@ if __name__ == '__main__':
     xData = np.float64(rawData["Wavelength"][:701].values)
     yData = np.float64(rawData["Intensity"][:701].values)
     
+    ######
+    #plot#
+    ######
+    plt.figure(figsize=(12,10))
+    plt.plot(xData, yData, label = "real")
+    plt.legend()
+    plt.xlabel("Wavelength (nm)")
+    plt.ylabel("Intensity (a. u.)")
+    plt.show()
+    
     # fitting parameter from Matlab
     center_wavelength = [944.1,1207,1402,1424,1542]
     FWHM = [42.22,143.1,92.99,25.39,21.49]
@@ -45,13 +55,15 @@ if __name__ == '__main__':
     ######
     #plot#
     ######
-    
+    plt.figure(figsize=(12,10))
     plt.plot(xData, yData, label = "real")
     plt.plot(xData, fitted, label = "fitted")
     for i in range(len(center_intensity)) :
         y = guassion_fun(xData, center_wavelength[i], center_intensity[i], FWHM[i])
         plt.plot(xData,y,label = str(i))
     plt.legend()
+    plt.xlabel("Wavelength (nm)")
+    plt.ylabel("Intensity (a. u.)")
     plt.show()
     
     

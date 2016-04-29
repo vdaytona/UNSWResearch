@@ -33,19 +33,17 @@ def fitting_process(wavelength, real_intensity, center_wavelength, center_intens
     ######
     #plot#
     ######
-    #===========================================================================
-    # plt.figure(figsize=(12,10))
-    # plt.plot(wavelength, real_intensity, label = "real")
-    # plt.plot(wavelength, fitted, label = "fitted")
-    # for i in range(len(center_intensity)) :
-    #     y = guassion_fun(xData, center_wavelength[i], center_intensity[i], FWHM[i])
-    #     plt.plot(xData,y,label = str(i))
-    # plt.legend()
-    # plt.xlabel("Wavelength (nm)")
-    # plt.ylabel("Intensity (a. u.)")
-    # print sm.r2_score(real_intensity,fitted)
-    # plt.show()
-    #===========================================================================
+    plt.figure(figsize=(12,10))
+    plt.plot(wavelength, real_intensity, label = "real")
+    plt.plot(wavelength, fitted, label = "fitted")
+    for i in range(len(center_intensity)) :
+        y = guassion_fun(xData, center_wavelength[i], center_intensity[i], FWHM[i])
+        plt.plot(xData,y,label = str(i))
+    plt.legend()
+    plt.xlabel("Wavelength (nm)")
+    plt.ylabel("Intensity (a. u.)")
+    print sm.r2_score(real_intensity,fitted)
+    plt.show()
     
     # 1. calculate the initial r2_score
     
@@ -67,19 +65,17 @@ def fitting_process(wavelength, real_intensity, center_wavelength, center_intens
     ######
     #plot#
     ######
-    #===========================================================================
-    # plt.figure(figsize=(12,10))
-    # plt.plot(wavelength, real_intensity, label = "real")
-    # plt.plot(wavelength, fitted, label = "fitted")
-    # for i in range(len(center_intensity)) :
-    #     y = guassion_fun(xData, center_wavelength[i], center_intensity[i], FWHM[i])
-    #     plt.plot(xData,y,label = str(i))
-    # plt.legend()
-    # plt.xlabel("Wavelength (nm)")
-    # plt.ylabel("Intensity (a. u.)")
-    # print sm.r2_score(real_intensity,fitted)
-    # plt.show()
-    #===========================================================================
+    plt.figure(figsize=(12,10))
+    plt.plot(wavelength, real_intensity, label = "real")
+    plt.plot(wavelength, fitted, label = "fitted")
+    for i in range(len(center_intensity)) :
+        y = guassion_fun(xData, center_wavelength[i], center_intensity[i], FWHM[i])
+        plt.plot(xData,y,label = str(i))
+    plt.legend()
+    plt.xlabel("Wavelength (nm)")
+    plt.ylabel("Intensity (a. u.)")
+    print sm.r2_score(real_intensity,fitted)
+    plt.show()
     
     print center_wavelength
     print center_intensity
@@ -87,8 +83,7 @@ def fitting_process(wavelength, real_intensity, center_wavelength, center_intens
     
     
     
-    for i in range(20) :
-        print i
+    for i in range(2) :
         coeff_score = coeff_cal(real_intensity, fitted)
         previous = 0.0
         while coeff_score != previous :
@@ -104,15 +99,13 @@ def fitting_process(wavelength, real_intensity, center_wavelength, center_intens
         #plot#
         ######
         
-        #=======================================================================
-        # plt.plot(wavelength, real_intensity, label = "real")
-        # plt.plot(wavelength, fitted, label = "fitted")
-        # for i in range(len(center_intensity)) :
-        #     y = guassion_fun(xData, center_wavelength[i], center_intensity[i], FWHM[i])
-        #     plt.plot(xData,y,label = str(i))
-        # plt.legend()
-        # plt.show()
-        #=======================================================================
+        plt.plot(wavelength, real_intensity, label = "real")
+        plt.plot(wavelength, fitted, label = "fitted")
+        for i in range(len(center_intensity)) :
+            y = guassion_fun(xData, center_wavelength[i], center_intensity[i], FWHM[i])
+            plt.plot(xData,y,label = str(i))
+        plt.legend()
+        plt.show()
         
         # 1. calculate the initial r2_score
         
@@ -131,17 +124,17 @@ def fitting_process(wavelength, real_intensity, center_wavelength, center_intens
         print "r2_score : " + str(r2_score)
         
         
-    ######
-    #plot#
-    ######
-    
-    plt.plot(wavelength, real_intensity, label = "real")
-    plt.plot(wavelength, fitted, label = "fitted")
-    for i in range(len(center_intensity)) :
-        y = guassion_fun(xData, center_wavelength[i], center_intensity[i], FWHM[i])
-        plt.plot(xData,y,label = str(i))
-    plt.legend()
-    plt.show()
+        ######
+        #plot#
+        ######
+        
+        plt.plot(wavelength, real_intensity, label = "real")
+        plt.plot(wavelength, fitted, label = "fitted")
+        for i in range(len(center_intensity)) :
+            y = guassion_fun(xData, center_wavelength[i], center_intensity[i], FWHM[i])
+            plt.plot(xData,y,label = str(i))
+        plt.legend()
+        plt.show()
     
     
     
@@ -314,35 +307,27 @@ def r_square_score(target,fitted):
     # check no nan
     target = check_nan(target)
     fitted = check_nan(fitted)  
-    
+    return  r2_score(target[:425], fitted[:425])
     #for no loading, wavelength 1 nm interval
     
-    target1 = target[350:450]
-    fitted1 = fitted[350:450]
-    target2 = target[485:550]
-    fitted2 = fitted[485:550]
+    target1 = target[350:470]
+    fitted1 = fitted[350:470]
+    target2 = target[515:550]
+    fitted2 = fitted[515:550]
     target3 = target[550:620]
     fitted3 = fitted[550:620]
-    target4 = target[620:650]
-    fitted4 = fitted[620:650]
+    target4 = target[620:666]
+    fitted4 = fitted[620:666]
     target5 = target[650:700]
     fitted5 = fitted[650:700]
     target6 = target[0:350]
     fitted6 = fitted[0:350]
-    weight1 = 25
-    weight2 = 25
-    weight3 = 25
-    weight4 = 25
-    weight5 = 0
-    weight6 = 25
-    weight = weight1 + weight2 + weight3 + weight4 + weight5 + weight6
-    
-    score1 = r2_score(target1, fitted1) * weight1 / weight
-    score2 = r2_score(target2, fitted2) * weight2 / weight
-    score3 = r2_score(target3, fitted3) * weight3 / weight
-    score4 = r2_score(target4, fitted4) * weight4 / weight
-    score5 = r2_score(target5, fitted5) * weight5 / weight
-    score6 = r2_score(target6, fitted6) * weight6 / weight
+    score1 = r2_score(target1, fitted1) * 25 / 105
+    score2 = r2_score(target2, fitted2) * 25 / 105
+    score3 = r2_score(target3, fitted3) * 10 / 105
+    score4 = r2_score(target4, fitted4) * 15 / 105
+    score5 = r2_score(target5, fitted5) * 0 / 105
+    score6 = r2_score(target6, fitted6) * 15 / 105
     
     #===========================================================================
     # print target5
@@ -387,15 +372,17 @@ def r_square_score(target,fitted):
     return score1 + score2 + score3 + score4 + score5 + score6
 
 def coeff_cal(target,fitted):
-    #return np.corrcoef(target, fitted)[0,1]
-    target1 = target[0:440]
-    fitted1 = fitted[0:440]
-    target2 = target[485:750]
-    fitted2 = fitted[485:750]
-    score1 = np.corrcoef(target1, fitted1)[0,1]
-    score2 = np.corrcoef(target2, fitted2)[0,1]
-     
-    return (score1 + score2) / 2
+    return np.corrcoef(target, fitted)[0,1]
+    #===========================================================================
+    # target1 = target[0:470]
+    # fitted1 = fitted[0:470]
+    # target2 = target[515:]
+    # fitted2 = fitted[515:]
+    # score1 = np.corrcoef(target1, fitted1)[0,1]
+    # score2 = np.corrcoef(target2, fitted2)[0,1]
+    # 
+    # return score1 + score2
+    #===========================================================================
     
 
 def check_nan(inputArray):
@@ -430,8 +417,8 @@ def fit_one_spectrum(xData, yData):
     # center_wavelength = [1150,1310,1420,1545]
     #===========================================================================
     
-    FWHM = [20,113,100,86,20]
-    center_wavelength = [950,1091,1250,1420,1535]
+    FWHM = [20,20,113,100,86,20]
+    center_wavelength = [832,950,1090,1250,1420,1536]
     
     #===========================================================================
     # FWHM = [100,86,20]
@@ -451,10 +438,10 @@ def fit_one_spectrum(xData, yData):
     
 if __name__ == '__main__':
     # 1. import data
-    rawData = pd.read_csv("./Data/input1.csv")
+    rawData = pd.read_csv("./Data/408excitation_1.csv")
         
-    xData = np.float64(rawData["Wavelength"][:701].values)
-    yData = np.float64(rawData["Intensity"][:701].values)
+    xData = np.float64(rawData["Wavelength"][:451].values)
+    yData = np.float64(rawData["Intensity"][:451].values)
     
     print len(xData)
     fit_one_spectrum(xData, yData)

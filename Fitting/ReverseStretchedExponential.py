@@ -14,8 +14,8 @@ from scipy.optimize import curve_fit
 def func(x,A,tau,beta):
     return A *(1 - np.exp(-np.power((x/tau),beta)))
 
-def func1(x, A,tau, beta):
-    return A + (1-A) * np.exp(-np.power((x/tau),beta))
+def func1(x, A, B, tau, beta):
+    return A + B * np.exp(-np.power((x/tau),beta))
 
 def func2(x,A,tau):
     return A *(1 - np.exp(-(x/tau)))
@@ -24,7 +24,7 @@ def func3(x, A, tau, beta):
     return A * (1 - np.exp(-np.power((x/tau),beta)))
 
 
-rawData = pd.read_csv(".\Data\EmissionDecayCurve-80.csv", header = None)
+rawData = pd.read_csv(".\Data\EmissionDecayThermal.csv", header = None)
 print rawData
 
 x_data = rawData[0].values

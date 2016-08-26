@@ -376,9 +376,9 @@ def universe_optimization_coeff(wavelength, real_intensity, center_wavelength, c
     return [center_wavelength, center_intensity, FWHM]
 
 def guassion_fun(xData, wavelength, intensity, FWHM):
-    #return intensity * np.exp((-1 * np.power((xData - wavelength),2) / np.power(FWHM, 2)))
+    return intensity * np.exp((-1 * np.power((xData - wavelength),2) / np.power(FWHM, 2)))
     # using Lorentiz fitting
-    return intensity / (1 + np.power((xData - wavelength)/ (FWHM/2),2))
+    #return intensity / (1 + np.power((xData - wavelength)/ (FWHM/2),2))
 
 def r_square_score(target,fitted,weight_list):
     # check no nan

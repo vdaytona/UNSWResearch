@@ -4,6 +4,7 @@ Created on 26 Apr 2016
 Fitting multiple gaussian
 using weight array to adjust the weight:
 to ensure each spectrum has same weight
+then further apply muliple the weight of each spectrum one by one, so that the fitting can one after another
 
 @author: Daytona
 '''
@@ -12,7 +13,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import r2_score
-import sklearn.metrics as sm
 import copy
 from __builtin__ import str
 
@@ -90,7 +90,7 @@ def fitting_process(wavelength, real_intensity, center_wavelength, center_intens
     print center_intensity
     print FWHM
     
-    for i in range(2) :
+    for i in range(5) :
         print i
         coeff_score = coeff_cal(real_intensity, fitted)
         previous = 0.0
@@ -118,8 +118,10 @@ def fitting_process(wavelength, real_intensity, center_wavelength, center_intens
         #=======================================================================
         
         # 1. calculate the initial r2_score
-        
-        weight_list = updata_weight_list(wavelength, center_wavelength, center_intensity, FWHM, weight_list)
+        # put weight bias on different spectrum
+        bias_seq = [4,0,1,2,3]
+        bias = 50
+        weight_list = updata_weight_list_with_bias(wavelength, center_wavelength, center_intensity, FWHM, weight_list,bias_seq[i],bias)
         r2_score = r_square_score(real_intensity, fitted,weight_list)
         previous = 0.0
         
@@ -129,7 +131,7 @@ def fitting_process(wavelength, real_intensity, center_wavelength, center_intens
             result = \
             universe_optimization_new(wavelength, real_intensity, center_wavelength, center_intensity, FWHM, weight_list)
             center_wavelength, center_intensity, FWHM, weight_list = result[0],result[1], result[2], result[3]
-            weight_list = updata_weight_list(wavelength, center_wavelength, center_intensity, FWHM, weight_list)
+            weight_list = updata_weight_list_with_bias(wavelength, center_wavelength, center_intensity, FWHM, weight_list,bias_seq[i],bias)
             fitted = fitted_total_spectrum(wavelength, center_wavelength, center_intensity, FWHM)
             r2_score = r_square_score(real_intensity, fitted,weight_list)
         print "r2_score : " + str(r2_score)
@@ -376,9 +378,9 @@ def universe_optimization_coeff(wavelength, real_intensity, center_wavelength, c
     return [center_wavelength, center_intensity, FWHM]
 
 def guassion_fun(xData, wavelength, intensity, FWHM):
-    #return intensity * np.exp((-1 * np.power((xData - wavelength),2) / np.power(FWHM, 2)))
+    return intensity * np.exp((-1 * np.power((xData - wavelength),2) / np.power(FWHM, 2)))
     # using Lorentiz fitting
-    return intensity / (1 + np.power((xData - wavelength)/ (FWHM/2),2))
+    #return intensity / (1 + np.power((xData - wavelength)/ (FWHM/2),2))
 
 def r_square_score(target,fitted,weight_list):
     # check no nan
@@ -515,6 +517,26 @@ def updata_weight_list(xData, center_wavelength, center_intensity, FWHM, weight_
             if new_spectrum[j] > 0.01:
                 spectrum_index_list.append(j)
         weight = 1.0 / len(spectrum_index_list)
+        for j in range(len(weight_list)) :
+            if j in spectrum_index_list :
+                weight_list[j] += weight
+    return weight_list
+
+def updata_weight_list_with_bias(xData, center_wavelength, center_intensity, FWHM, weight_list, bias_number, bias):
+    # get new weight list
+    for i in range(len(xData)) :
+        weight_list[i] = 0.0
+    for i in range(len(center_wavelength)) :
+        # e.x. the wavelength is from 1200 - 1250, the weight for each point will be  1 / (indexof(1500) - indexof(1200))
+        new_spectrum = guassion_fun(xData, center_wavelength[i], center_intensity[i], FWHM[i])
+        spectrum_index_list = []
+        for j in range(len(new_spectrum)) :
+            if new_spectrum[j] > 0.01:
+                spectrum_index_list.append(j)
+        if i == bias_number :
+            weight = 1.0 / len(spectrum_index_list) * bias
+        else :
+            weight = 1.0 / len(spectrum_index_list)
         for j in range(len(weight_list)) :
             if j in spectrum_index_list :
                 weight_list[j] += weight

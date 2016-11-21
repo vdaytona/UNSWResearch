@@ -101,5 +101,8 @@ if __name__ == '__main__':
             combined_abs.append(result["absorption_long"].tolist()[i])
     result["combined_absorption"] = combined_abs
     
+    result.to_csv("../Result/test.csv")
+    
+    
     #result = raw_data_FUT_short.join()
     print "done"   

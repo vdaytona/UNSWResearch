@@ -26,7 +26,7 @@ def combined_data(raw_data):
         measured_point.append(find_measurement_point(raw_data[i]))
     
     # get rank
-    rank = ss.rankdata(measured_point)-1
+    rank = ss.rankdata(measured_point, method='ordinal')-1
     
     for i in range(raw_data.shape[0]):
         rank_no = 0

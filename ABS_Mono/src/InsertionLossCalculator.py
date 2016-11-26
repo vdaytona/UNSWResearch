@@ -28,15 +28,15 @@ def combined_data(raw_data):
     # get rank
     rank = ss.rankdata(measured_point)-1
     
-    
     for i in range(raw_data.shape[0]):
-        index_no = 0
-        while index_no < len(rank) :
-            element = raw_data.iloc[i].tolist()[int(rank[index_no])]
+        rank_no = 0
+        while rank_no < len(rank) :
+            position = int(np.where(rank == rank_no)[0])
+            element = raw_data.iloc[i].tolist()[position]
             if not np.isnan(element) :
                 combined_data_list.append(element)
                 break
-            index_no += 1
+            rank_no += 1
             
     
     raw_data["combined"] = combined_data_list
@@ -52,7 +52,7 @@ def find_measurement_point(data):
 
 if __name__ == '__main__':
     # BEDF length
-    length = 0.8
+    length = 1
     # raw data is from RawDataExtraction.py, so the data has not been combined
     # 1. read in SMF / FUT transmission spectra, short (~1000) and long (900~) range
     SMF_short_file = "../Data/SMF_short.csv"
@@ -80,10 +80,12 @@ if __name__ == '__main__':
     # 3. calculate the insertion loss for short and long range.
     raw_data_FUT_short = raw_data_FUT_short.join(raw_data_SMF_short,lsuffix='_FUT_short', rsuffix = '_SMF_short')
     raw_data_FUT_short["absorption_short"] = 10 * np.log10(raw_data_FUT_short["combined_SMF_short"] / raw_data_FUT_short["combined_FUT_short"]) / length
+    #raw_data_FUT_short["absorption_short"] = (raw_data_FUT_short["combined_SMF_short"] - raw_data_FUT_short["combined_FUT_short"]) / length
     raw_data_FUT_short.index.name = "wavelength"
     
     raw_data_FUT_long = raw_data_FUT_long.join(raw_data_SMF_long,lsuffix='_FUT_long', rsuffix = '_SMF_long')
     raw_data_FUT_long["absorption_long"] = 10 * np.log10(raw_data_FUT_long["combined_SMF_long"] / raw_data_FUT_long["combined_FUT_long"]) / length
+    #raw_data_FUT_long["absorption_long"] = (raw_data_FUT_long["combined_SMF_long"] - raw_data_FUT_long["combined_FUT_long"]) / length
     raw_data_FUT_long.index.name = "wavelength"
     
     #print raw_data_FUT_long
@@ -92,11 +94,14 @@ if __name__ == '__main__':
     
     # 4. rough combined the data and output the result
     result = pd.merge(raw_data_FUT_short,raw_data_FUT_long,left_index=True, right_index=True,how="outer")
+    # move the short absorption spectrum to meet the difference before long and short region
+    interval_long_short = result.loc[1000]["absorption_long"] - result.loc[1000]["absorption_short"]
+    
     combined_abs = []
     for i in range(result.shape[0]) :
         element = result["absorption_short"].tolist()[i]
         if not np.isnan(element) :
-            combined_abs.append(element)
+            combined_abs.append(element + interval_long_short)
         else :
             combined_abs.append(result["absorption_long"].tolist()[i])
     result["combined_absorption"] = combined_abs

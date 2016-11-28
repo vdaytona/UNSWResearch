@@ -21,12 +21,9 @@ def rawDataExtraction(fileList):
             data_new = pd.read_csv(path + file_new, header = None, index_col = 0, skiprows = 0)
             data = pd.merge(data,data_new,left_index=True, right_index=True,how="outer")
     data.fillna(0)
-    print data.shape[1]
     column_name = range(data.shape[1])
     column_name = [x + 1 for x in column_name]
-    print column_name
     data.columns = column_name
-    print data
     return data
 
 def combined_data(raw_data):
@@ -84,19 +81,12 @@ if __name__ == '__main__':
     raw_data_FUT_long = rawDataExtraction(FUT_long_file)
     raw_data_SMF_short = rawDataExtraction(SMF_short_file)
     raw_data_SMF_long = rawDataExtraction(SMF_long_file)
-    print raw_data_FUT_short
     
     # 2. combined the transmission for long and short range for both data
-    print "combine FUT short"
     raw_data_FUT_short = combined_data(raw_data_FUT_short)
-    print "combine FUT long"
     raw_data_FUT_long = combined_data(raw_data_FUT_long)
-    print "combine SMF short"
     raw_data_SMF_short = combined_data(raw_data_SMF_short)
-    print "combine SMF long"
     raw_data_SMF_long = combined_data(raw_data_SMF_long)
-    #print raw_data_SMF_long
-    
     
     print "combined done"
     
@@ -127,9 +117,9 @@ if __name__ == '__main__':
             combined_abs.append(result["absorption_long"].tolist()[i])
     result["combined_absorption"] = combined_abs
     
-    result.to_csv("../Result/test.csv")
+    result.to_csv("../Result/InsertionLoss.csv")
     
     
     #result = raw_data_FUT_short.join()
-    print "done"   
+    print "Finished"
     

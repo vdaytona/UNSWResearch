@@ -16,6 +16,7 @@ import time
 from sklearn.metrics import r2_score
 from time import sleep
 from __builtin__ import file
+from numpy import sqrt, pi, exp, linspace, loadtxt
 
 #===============================================================================
 # # 1. read in data
@@ -39,6 +40,16 @@ weight_if = True
 def func1(x,a,c,d):
     return  a + (1-a) * np.exp(-np.power((x/c),d))
 
+def gaussian_func(x,amp,cen,wid):
+    sta_dev = 2.3548 / wid
+    return (amp/(sqrt(2*pi)*sta_dev)) * exp(-(x-cen)**2 /(2*sta_dev**2))
+
+def multi_gaussian_func(x, amp_para, cen_para, wid_para):
+    predict = []
+    for i in range(len(amp_para)):
+        predict = predict + gaussian_func(x, amp_para[i], cen_para[i], wid_para[i])
+    return predict
+        
 def square_score_func1(x,y,a,c,d,weight_list):
     y_predict = []
     for x_value in x:
@@ -62,37 +73,78 @@ def drange(start, stop, step):
     while r < stop:
         yield r
         r += step
+        
+def index_list_generator(list):
+    len_list = [len(x) for x in list]
+    index_list = []
+    for i0 in range(len_list[0]):
+        for i1 in range(len_list[1]):
+            for i2 in range(len_list[2]):
+                for i3 in range(len_list[3]):
+                    for i4 in range(len_list[4]):
+                        index_list.append(i0,i1,i2 ,i3,i4)
+    return  index_list
 
-def start_fitting(x_data, y_data, weight_data, a,c,output_file_name):    
+def para_find(para_list, index_list):
+    result = []
+    for i in range(5):
+        result.append(para_list[i][index_list[i]])
+    return result
+    
+
+def start_fitting(x_data, y_data, weight_data, amp,cen, wid,output_file_name):    
     
     # set the function and search range and interval of parameter
     # function: a + b * exp(-(x/c)^d)
-    a_start = a[0]
-    a_end = a[1]
-    a_interval = 0.002
-    a = [x for x in drange(a_start, a_end, a_interval)]
-    #b_start = b[0]
-    #b_end = b[1]
-    #b_interval = 0.005
-    #b = [x for x in drange(b_start, b_end, b_interval)]
-    c_start = c[0]
-    c_end = c[1]
-    c_interval = 20
-    c = [x for x in drange(c_start, c_end, c_interval)]
-    d_start = 0.30
-    d_end = 0.45
-    d_interval = 0.002
-    d = [x for x in drange(d_start, d_end, d_interval)]
+    amp_sep_number = 50.0
+    amp_range_list = []
+    for i in range(len(amp)):
+        start = amp[i][0]
+        end = amp[i][1]
+        amp_interval = (start  - end) / amp_sep_number
+        amp = [x for x in drange(start, end, amp_interval)]
+        amp_range_list.append(amp)
+        
+    cen_range_list = []
+    for i in range(len(cen)):
+        start = cen[i][0]
+        end = cen[i][1]
+        interval = 2.0
+        cen_range_list.append([x for x in drange(start, end, interval)])
+        
+    wid_range_list = []
+    for i in range(len(wid)):
+        start = wid[i][0]
+        end = wid[i][1]
+        interval = 2.0
+        wid_range_list.append([x for x in drange(start, end, interval)])
     
     # 4. calculate the best combination due to correlation coefficient
-    loop = len(a) * len(c) * len(d)
+    loop = (len(amp_range_list[0]) * len(cen_range_list[0]) * len(wid_range_list[0]))^5
     print loop
     result = []
     loop_now = 0
-    for a_value in a:
-        #for b_value in b:
-        for c_value in c:
-            for d_value in d:
+    amp_index_list = index_list_generator(amp_range_list)
+    cen_index_list = index_list_generator(cen_range_list)
+    wid_index_list = index_list_generator(wid_range_list)
+    
+    for amp_index in amp_index_list:
+        for cen_index in cen_index_list:
+            for wid_index in wid_index_list:
+                amp_para = para_find(amp_range_list, amp_index)
+                cen_para = para_find(cen_range_list, cen_index)
+                wid_para = para_find(wid_range_list, wid_index)
+                predict_y = multi_gaussian_func(x, amp_para, cen_para, wid_para)
+                #####
+                
+                
+                            
+                        
+
+    
+    for a_value in amp:
+        for c_value in cen:
+            for d_value in wid:
                 r2_square_fiited = square_score_func1(x_data,y_data,a_value,c_value,d_value,weight_list)
                 corr_result = cor_coef_func1(x_data,y_data,a_value,c_value,d_value )
                 total_score = corr_result + r2_square_fiited
@@ -115,6 +167,12 @@ def start_fitting(x_data, y_data, weight_data, a,c,output_file_name):
     print sorted(result, key = lambda result : result[5],reverse=True)[0]
     print "best first value"
     print sorted(result, key = lambda result : result[6],reverse=False)[0]
+    
+def substract_background(amp,background):
+    new_amp = []
+    for list in amp:
+        new_amp.append([x - background for x in list])
+    return new_amp
 
 if __name__ == '__main__':
     global weight_if
@@ -122,29 +180,32 @@ if __name__ == '__main__':
     # file list
     file_list = ['data1']
     
-    output_list = ['2017-02-02-12-21-F151108-11s_150mA_1cm_']
+    output_list = ['Gaussian_fitting_20s']
     
-    a = [ [0.40,0.6]]
-    #b = [[0.45,0.55], [0.4,0.6], [0.60,0.62]]
-    c = [ [1000,10000]]
+    background = 0.000473182
+    amp = [ [0.001,0.001/2.0],[0.003,0.0015],[0.001,0.001/2.0],[0.00175,0.00175/2.0],[0.00334,0.00334/2.0]]
+    cen = [[962.0,974.],[1086.,1096.],[1348.,1358.],[1414.,1422.],[1534.,1540.]]
+    wid = [[30.,90.],[110.,160.],[50.,100.],[80.,150.],[26.,40.]]
+    amp = substract_background(amp, background)
+    
     print range(len(file_list))
     for f in range(len(file_list)):
         file_name = './Data/' + file_list[f] + '.csv'
         timeNow = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime(time.time()))
         if weight_if == True:
-            output_file_name = './Result/' + output_list[f] +  timeNow + '_GroupFittingGrid_weighted_v4_' + '.csv'
+            output_file_name = './Result/' + output_list[f] +  timeNow + '_GroupFittingGrid_Gaussian_weighted_v5_' + '.csv'
         else :
-            output_file_name = './Result/' + timeNow + '_GroupFittingGrid_Noweighted_v4_' + output_list[f] + '.csv'
+            output_file_name = './Result/' + output_list[f] +  timeNow + '_GroupFittingGrid_Gaussian_Noweighted_v5_' + '.csv'
         
         rawData = pd.read_csv(file_name, header = None)
         x_data = rawData[0]
         x_data = [float(x) for x in x_data]
         y_data = rawData[1]
-        # create weight list
+        # create weight list, no use at moment
         weight_list = []
         for i in range(len(y_data)):
             if i < len(y_data)-1 :
                 weight_list.append(np.power((abs(y_data[i] - y_data[i+1])),1))
             else:
                 weight_list.append(weight_list[-1])
-        start_fitting(x_data, y_data, weight_list, a[f], c[f], output_file_name)
+        start_fitting(x_data, y_data, weight_list, amp, cen, wid, output_file_name)
